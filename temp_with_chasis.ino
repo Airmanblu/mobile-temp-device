@@ -6,15 +6,16 @@ int celsius; //declare a function celsius as an integer
 #include <Servo.h>
 const int SERVO  =7;   //Servo on Pin 9
 const int IR     =A1;   //IR Distance Sensor on Analog Pin 0
+int val = 0;            //IR test output
 
 // Temperature Alert!
 const int BLED=27;          // Blue LED Cathode on Pin 9
 const int GLED=25;         // Green LED Cathode on Pin 10
 const int RLED=23;         // Red LED Cathode on Pin 11
-const int TEMP=A7;          // Temp Sensor is on pin A0
+const int TEMP=A15;          // Temp Sensor is on pin A0
 const int FAN=6;            // Fan pin 2
 const int LOWER_BOUND=139; // Lower Threshold
-const int UPPER_BOUND=165; // Upper Threshold
+const int UPPER_BOUND=149; // Upper Threshold
 const int BTLE = 42;        //Sends analog data to BTLE device
 int temperature = 0;               // Variable to hold analog reading
 
@@ -105,19 +106,20 @@ sensorValue = analogRead(sensorPin);
   sensorValue = map(sensorValue, sensorMin, sensorMax, 0, 255);
 // fade the LED using the calibrated value:
   analogWrite(ledPin, sensorValue);
-  myServo.write (80);                                // Tells the Servo  to position at 80 degrees (Facing forward).
-  delay (100);                                    //  Delay for 0.1s.
-  FrontDistance = readDistance(90);      // Measuring  the Distance in CM.
-  if (FrontDistance < 30) {                            // If obstacle  found in 30cm.
+  myServo.write (90);                                // Tells the Servo  to position at 80 degrees (Facing forward).
+  delay (100);                                      //  Delay for 0.1s.
+  
+  FrontDistance = readDistance(90);                 // Measuring  the Distance in CM.
+  if (FrontDistance < 500) {                            // If obstacle  found in 30cm.
     forward();
    rate = 100;
   }
-  else if ((FrontDistance >= 30) && (FrontDistance < 60)) { // If obstacle  found between 30cm to 60cm.
+  else if ((FrontDistance >= 350) && (FrontDistance < 250)) { // If obstacle  found between 30cm to 60cm.
    forward ();
    rate = 150;
     
   }
-  else if ((FrontDistance >= 60) && (FrontDistance  < 90)) { // If obstacle found between 60cm to 90cm.
+  else if ((FrontDistance >= 100) && (FrontDistance  < 25)) { // If obstacle found between 60cm to 90cm.
    forward();
    rate = 200;
    
@@ -127,16 +129,17 @@ sensorValue = analogRead(sensorPin);
    rate = 255;
    
 }
-RightDistance = readDistance(12);      // Measuring  the Distance in CM.
-   if (RightDistance < 30) {                            // If obstacle  found in 30cm.
+
+RightDistance = readDistance(165);      // Measuring  the Distance in CM.
+   if (RightDistance < 500) {                            // If obstacle  found in 30cm.
     forward();
     rate = 100;
   }
-  else if ((RightDistance >= 30) && (RightDistance < 60)) { // If obstacle  found between 30cm to 60cm.
+  else if ((RightDistance >= 350) && (RightDistance < 250)) { // If obstacle  found between 30cm to 60cm.
     forward ();
   rate = 150;
   }
-  else if ((RightDistance >= 60) && (RightDistance  < 90)) { // If obstacle found between 60cm to 90cm.
+  else if ((RightDistance >= 100) && (RightDistance  < 25)) { // If obstacle found between 60cm to 90cm.
     forward();
     rate = 200;
   }
@@ -144,17 +147,19 @@ RightDistance = readDistance(12);      // Measuring  the Distance in CM.
     forward ();                                   // Robot move  to Forward direction.
     rate = 255;
   }
-  LeftDistance = readDistance(165);      // Measuring  the Distance in CM.
-    if (LeftDistance < 30) {                            // If obstacle  found in 30cm.
+
+ 
+  LeftDistance = readDistance(15);     // Measuring  the Distance in CM.
+    if (LeftDistance < 500) {                            // If obstacle  found in 30cm.
     forward();
     
     rate = 100;
   }
- else if ((LeftDistance >= 30) && (LeftDistance < 60)) { // If obstacle  found between 30cm to 60cm.
+ else if ((LeftDistance >= 350) && (LeftDistance < 250)) { // If obstacle  found between 30cm to 60cm.
     forward ();
     rate = 150;
   }
-  else if ((LeftDistance >= 60) && (LeftDistance  < 90)) { // If obstacle found between 60cm to 90cm.
+  else if ((LeftDistance >= 100) && (LeftDistance  < 25)) { // If obstacle found between 60cm to 90cm.
     forward();
     rate = 200;
   }
@@ -163,7 +168,11 @@ RightDistance = readDistance(12);      // Measuring  the Distance in CM.
     rate = 255;
   }
   temperature = analogRead(TEMP);
+  val = analogRead(IR);
+  Serial.print("Temperature ");
   Serial.println(temperature);
+  Serial.print("IR distance  ");
+  Serial.println(val);
   delay(500);
 
   // LED is Blue
@@ -191,19 +200,20 @@ RightDistance = readDistance(12);      // Measuring  the Distance in CM.
     digitalWrite(FAN, LOW);
   }
   int sensor_data = analogRead(TEMP);
-  double voltage = sensor_data * 5 / 1023;
-  double temperature_Celsius = voltage* 100-50;
+  float voltage = sensor_data * 5.0;
+  voltage/=1024;
+  float temperatureC = (voltage - 0.5) * 100;
   delay(1000); 
   //Make custom characters
   lcd.setCursor(0,0);          
   lcd.print("Temperature"); 
   lcd.setCursor(0,1);           
-  lcd.print(temperature_Celsius);
+  lcd.print(temperatureC);
   lcd.setCursor(5,1);
   lcd.print(char(223));
   lcd.print("C");
   lcd.print(" ");
-  analogWrite(42,temperature_Celsius); 
+  analogWrite(42,temperatureC); 
 }
 void CompareDistance() {
   if (LeftDistance > RightDistance)
